@@ -7,12 +7,13 @@ lg = LexerGenerator()
 lg.add('NUMBER', r'\d+')
 lg.add('PLUS', r'\+')
 lg.add('MINUS', r'-')
-# lg.add('MUL', r'\*')
-# lg.add('DIV', r'/')
+lg.add('MUL', r'\*')
+lg.add('DIV', r'/')
 # lg.add('POT', r'\^')
 lg.add('OPEN_PARENS', r'\(')
 lg.add('CLOSE_PARENS', r'\)')
 lg.ignore('\s+')
+lg.ignore("/.*?/")
 lexer = lg.build()
 
 # for token in lexer.lex('3 + 2 * 3 ^ 1'):
@@ -56,13 +57,13 @@ pg = ParserGenerator(
     #  'PLUS', 'MINUS', 'MUL', 'DIV', 'POT'
     # ],
     ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
-     'PLUS', 'MINUS'
+     'PLUS', 'MINUS',"MUL","DIV"
     ],
     # A list of precedence rules with ascending precedence, to
     # disambiguate ambiguous production rules.
     precedence=[
-        ('left', ['PLUS', 'MINUS'])
-        # ('left', ['MUL', 'DIV']),
+        ('left', ['PLUS', 'MINUS']),
+        ('left', ['MUL', 'DIV'])
         # ('left', ['POT'])
     ]
 )
@@ -79,8 +80,8 @@ def expression_parens(p):
 
 @pg.production('expression : expression PLUS expression')
 @pg.production('expression : expression MINUS expression')
-# @pg.production('expression : expression MUL expression')
-# @pg.production('expression : expression DIV expression')
+@pg.production('expression : expression MUL expression')
+@pg.production('expression : expression DIV expression')
 # @pg.production('expression : expression POT expression')
 def expression_binop(p):
     left = p[0]
@@ -89,10 +90,10 @@ def expression_binop(p):
         return Add(left, right)
     elif p[1].gettokentype() == 'MINUS':
         return Sub(left, right)
-    # elif p[1].gettokentype() == 'MUL':
-    #     return Mul(left, right)
-    # elif p[1].gettokentype() == 'DIV':
-    #     return Div(left, right)
+    elif p[1].gettokentype() == 'MUL':
+        return Mul(left, right)
+    elif p[1].gettokentype() == 'DIV':
+        return Div(left, right)
     # elif p[1].gettokentype() == 'POT':
     #     return Pot(left, right)
     else:
