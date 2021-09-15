@@ -18,7 +18,8 @@ lg.add('DIV', r'/')
 lg.add('OPEN_PARENS', r'\(')
 lg.add('CLOSE_PARENS', r'\)')
 lg.ignore('\s+')
-lg.ignore("/.*?/")
+lg.ignore('/\*.*\*/')
+#\* *\
 lexer = lg.build()
 
 # for token in lexer.lex('3 + 2 * 3 ^ 1'):
