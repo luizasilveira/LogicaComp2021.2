@@ -18,7 +18,8 @@ lg.add('DIV', r'/')
 lg.add('OPEN_PARENS', r'\(')
 lg.add('CLOSE_PARENS', r'\)')
 lg.ignore('\s+')
-lg.ignore('/\*.*\*/')
+#lg.ignore("/.*?/")
+lg.ignore("/\*.*?\*/")
 #\* *\
 lexer = lg.build()
 
@@ -135,5 +136,5 @@ def main(entrada):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
-    #main(input())
+    #main(sys.argv[1])
+    main(input())
