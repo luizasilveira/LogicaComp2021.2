@@ -136,5 +136,5 @@ def main(entrada):
 
 
 if __name__ == "__main__":
-    #main(sys.argv[1])
-    main(input())
+    main(sys.argv[1])
+    #main(input())
