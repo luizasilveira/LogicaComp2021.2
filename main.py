@@ -20,12 +20,7 @@ lg.add('CLOSE_PARENS', r'\)')
 lg.ignore('\s+')
 #lg.ignore("/.*?/")
 lg.ignore("/\*.*?\*/")
-#\* *\
 lexer = lg.build()
-
-# for token in lexer.lex('3 + 2 * 3 ^ 1'):
-#   print(token)
-
 class Number(BaseBox):
     def __init__(self, value):
         self.value = value
@@ -128,7 +123,6 @@ def expression_binop(p):
         raise AssertionError('Oops, this should not be possible!')
 
 parser = pg.build()
-
 
 def main(entrada):
     result = parser.parse(lexer.lex(entrada)).eval()
