@@ -81,15 +81,15 @@ pg = ParserGenerator(
     ]
 )
 
-@pg.production('expression : PLUS expression')
-@pg.production('expression : MINUS expression')
-def expression_unary(p):
-    # right = p[2]
-    left = p[0]
-    if left.gettokentype() == 'PLUS':
-        return UnOp("SUM", p[1])
-    elif left.gettokentype() == 'MINUS':
-        return UnOp("SUB", p[1])
+# @pg.production('expression : PLUS expression')
+# @pg.production('expression : MINUS expression')
+# def expression_unary(p):
+#     # right = p[2]
+#     left = p[0]
+#     if left.gettokentype() == 'PLUS':
+#         return UnOp("SUM", p[1])
+#     elif left.gettokentype() == 'MINUS':
+#         return UnOp("SUB", p[1])
 
 @pg.production('expression : NUMBER')
 def expression_number(p):
@@ -130,5 +130,5 @@ def main(entrada):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
-    #main(input())
+    #main(sys.argv[1])
+    main(input())
