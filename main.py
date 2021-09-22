@@ -1,3 +1,5 @@
+# $ git tag -a v0.1.1 -m "Mensagem sobre o release"
+# $ git push origin v0.1.1
 #!/usr/bin/env python
 # -- coding: utf-8 --
 import sys
