@@ -15,14 +15,12 @@ lg.add('PLUS', r'\+')
 lg.add('MINUS', r'-')
 lg.add('MUL', r'\*')
 lg.add('DIV', r'/')
-# lg.add('POT', r'\^')
+lg.add('POT', r'\^')
 lg.add('OPEN_PARENS', r'\(')
 lg.add('CLOSE_PARENS', r'\)')
 lg.ignore('\s+')
-#lg.ignore("/.*?/")
 lg.ignore("/\*.*?\*/")
 lexer = lg.build()
-
 class Node(BaseBox):
     def __init__(self,value):
         self.value = value
@@ -30,7 +28,6 @@ class Node(BaseBox):
 
     def eval(self):
         return self.value
-
 class BinOp(Node):
     def __init__(self, op, left, right):
         self.value = op
@@ -49,17 +46,8 @@ class BinOp(Node):
         if self.value == "DIV":
             return (self.children[0].eval() / self.children[1].eval())
 
-# class UnOp(BinaryOp):
-#     def __init__(self, op, value):
-#         self.op = op
-#         self.value = value
-
-#     def eval(self):
-#         if self.op == "SUM":
-#             return self.value.eval()
-#         elif self.op == "SUB":
-#             return -self.value.eval()
-
+        if self.value == "POT":
+            return (self.children[0].eval() ** self.children[1].eval())
 class UnOp(Node):
     def __init__(self, op, children):
         self.value = op
@@ -78,13 +66,12 @@ class IntVal(Node):
     def eval(self):
         return int(self.value)
 
-class NoOp(Node):
-    def __init__(self, value):
-        self.value = value
-        #self.value = children
+# class NoOp(Node):
+#     def __init__(self, value):
+#         self.value = value
 
-    def eval(self):
-        return self.value.eval()
+#     def eval(self):
+#         return self.value.eval()
 
 class Number(BaseBox):
     def __init__(self, value):
@@ -93,51 +80,23 @@ class Number(BaseBox):
     def eval(self):
         return self.value
 
-
-
-# class Add(BinaryOp):
-#     def eval(self):
-#         return self.left.eval() + self.right.eval()
-
-# class Sub(BinaryOp):
-#     def eval(self):
-#         return self.left.eval() - self.right.eval()
-
-# class Mul(BinaryOp):
-#     def eval(self):
-#         return self.left.eval() * self.right.eval()
-
-# class Div(BinaryOp):
-#     def eval(self):
-#         return self.left.eval() / self.right.eval()
-
-# class Pot(BinaryOp):
-#     def eval(self):
-#         return self.left.eval() ** self.right.eval()
-
-
-
 pg = ParserGenerator(
     # A list of all token names, accepted by the parser.
-    # ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
-    #  'PLUS', 'MINUS', 'MUL', 'DIV', 'POT'
-    # ],
     ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
-     'PLUS', 'MINUS',"MUL","DIV"
+     'PLUS', 'MINUS',"MUL","DIV", "POT"
     ],
     # A list of precedence rules with ascending precedence, to
     # disambiguate ambiguous production rules.
     precedence=[
         ('left', ['PLUS', 'MINUS']),
-        ('left', ['MUL', 'DIV'])
-        # ('left', ['POT'])
+        ('left', ['MUL', 'DIV']),
+        ('left', ['POT'])
     ]
 )
 
 @pg.production('expression : PLUS expression')
 @pg.production('expression : MINUS expression')
 def expression_unary(p):
-    # right = p[2]
     left = p[0]
     if left.gettokentype() == 'PLUS':
         return UnOp("PLUS", p[1])
@@ -159,6 +118,7 @@ def expression_parens(p):
 @pg.production('expression : expression MINUS expression')
 @pg.production('expression : expression MUL expression')
 @pg.production('expression : expression DIV expression')
+@pg.production('expression : expression POT expression')
 # @pg.production('expression : expression POT expression')
 def expression_binop(p):
     left = p[0]
@@ -171,8 +131,8 @@ def expression_binop(p):
         return BinOp('MUL',left, right)
     elif p[1].gettokentype() == 'DIV':
         return BinOp('DIV',left, right)
-    # elif p[1].gettokentype() == 'POT':
-    #     return Pot(left, right)
+    elif p[1].gettokentype() == 'POT':
+        return BinOp('POT',left, right)
     else:
         raise AssertionError('Oops, this should not be possible!')
 
@@ -181,7 +141,6 @@ parser = pg.build()
 def main(entrada):
     result = parser.parse(lexer.lex(entrada)).eval()
     print(int(result))
-
 
 if __name__ == "__main__":
     main(sys.argv[1])
