@@ -20,6 +20,70 @@ lg.ignore('\s+')
 #lg.ignore("/.*?/")
 lg.ignore("/\*.*?\*/")
 lexer = lg.build()
+
+class Node(BaseBox):
+    def __init__(self,value):
+        self.value = value
+        self.children = []
+
+    def eval(self):
+        return self.value
+
+class BinOp(Node):
+    def __init__(self, op, left, right):
+        self.value = op
+        self.children = [left,right]
+
+    def eval(self):
+        if self.value == "PLUS":
+            return (self.children[0].eval() + self.children[1].eval())
+
+        if self.value == "MINUS":
+            return (self.children[0].eval() - self.children[1].eval())
+
+        if self.value == "MUL":
+            return (self.children[0].eval() * self.children[1].eval())
+
+        if self.value == "DIV":
+            return (self.children[0].eval() / self.children[1].eval())
+
+# class UnOp(BinaryOp):
+#     def __init__(self, op, value):
+#         self.op = op
+#         self.value = value
+
+#     def eval(self):
+#         if self.op == "SUM":
+#             return self.value.eval()
+#         elif self.op == "SUB":
+#             return -self.value.eval()
+
+class UnOp(Node):
+    def __init__(self, op, children):
+        self.value = op
+        self.children = [children]
+
+    def eval(self):
+        if self.value == "PLUS":
+            return self.children[0].eval()
+        elif self.value == "MINUS":
+            return -self.children[0].eval()
+
+class IntVal(Node):
+    def __init__(self, value):
+        self.value = value
+
+    def eval(self):
+        return int(self.value)
+
+class NoOp(Node):
+    def __init__(self, value):
+        self.value = value
+        #self.value = children
+
+    def eval(self):
+        return self.value.eval()
+
 class Number(BaseBox):
     def __init__(self, value):
         self.value = value
@@ -27,41 +91,29 @@ class Number(BaseBox):
     def eval(self):
         return self.value
 
-class BinaryOp(BaseBox):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
 
-class Add(BinaryOp):
-    def eval(self):
-        return self.left.eval() + self.right.eval()
 
-class Sub(BinaryOp):
-    def eval(self):
-        return self.left.eval() - self.right.eval()
+# class Add(BinaryOp):
+#     def eval(self):
+#         return self.left.eval() + self.right.eval()
 
-class Mul(BinaryOp):
-    def eval(self):
-        return self.left.eval() * self.right.eval()
+# class Sub(BinaryOp):
+#     def eval(self):
+#         return self.left.eval() - self.right.eval()
 
-class Div(BinaryOp):
-    def eval(self):
-        return self.left.eval() / self.right.eval()
+# class Mul(BinaryOp):
+#     def eval(self):
+#         return self.left.eval() * self.right.eval()
 
-class Pot(BinaryOp):
-    def eval(self):
-        return self.left.eval() ** self.right.eval()
+# class Div(BinaryOp):
+#     def eval(self):
+#         return self.left.eval() / self.right.eval()
 
-class UnOp(BinaryOp):
-    def __init__(self, op, value):
-        self.op = op
-        self.value = value
+# class Pot(BinaryOp):
+#     def eval(self):
+#         return self.left.eval() ** self.right.eval()
 
-    def eval(self):
-        if self.op == "SUM":
-            return self.value.eval()
-        elif self.op == "SUB":
-            return -self.value.eval()
+
 
 pg = ParserGenerator(
     # A list of all token names, accepted by the parser.
@@ -86,15 +138,16 @@ def expression_unary(p):
     # right = p[2]
     left = p[0]
     if left.gettokentype() == 'PLUS':
-        return UnOp("SUM", p[1])
+        return UnOp("PLUS", p[1])
     elif left.gettokentype() == 'MINUS':
-        return UnOp("SUB", p[1])
+        return UnOp("MINUS", p[1])
 
 @pg.production('expression : NUMBER')
 def expression_number(p):
     # p is a list of the pieces matched by the right hand side of the
     # rule
-    return Number(float(p[0].getstr()))
+    return IntVal(p[0].getstr())
+    #return Number(float(p[0].getstr()))
 
 @pg.production('expression : OPEN_PARENS expression CLOSE_PARENS')
 def expression_parens(p):
@@ -109,13 +162,13 @@ def expression_binop(p):
     left = p[0]
     right = p[2]
     if p[1].gettokentype() == 'PLUS':
-        return Add(left, right)
+        return BinOp("PLUS",left, right)
     elif p[1].gettokentype() == 'MINUS':
-        return Sub(left, right)
+        return BinOp('MINUS',left, right)
     elif p[1].gettokentype() == 'MUL':
-        return Mul(left, right)
+        return BinOp('MUL',left, right)
     elif p[1].gettokentype() == 'DIV':
-        return Div(left, right)
+        return BinOp('DIV',left, right)
     # elif p[1].gettokentype() == 'POT':
     #     return Pot(left, right)
     else:
