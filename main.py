@@ -128,7 +128,6 @@ class Block(Node):
 
 #     def eval(self):
 #         return self.value.eval()
-
 class Number(BaseBox):
     def __init__(self, value):
         self.value = value
