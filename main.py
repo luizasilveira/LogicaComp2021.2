@@ -56,7 +56,7 @@ class BinOp(Node):
             return (self.children[0].eval() * self.children[1].eval())
 
         if self.value == "DIV":
-            return (self.children[0].eval() / self.children[1].eval())
+            return int((self.children[0].eval() / self.children[1].eval()))
 
         if self.value == "POT":
             return (self.children[0].eval() ** self.children[1].eval())
@@ -274,11 +274,11 @@ def error_handle(token):
 parser = pg.build()
 
 def main(entrada):
-    result = parser.parse(lexer.lex(entrada)).eval()
-    print((result))
+    parser.parse(lexer.lex(entrada)).eval()
+    # print(int(result))
 
 if __name__ == "__main__":
-    # f = open(sys.argv[1])
-    # data = f.read()
-    # main(data)
-    main(sys.argv[1])
+    f = open(sys.argv[1])
+    data = f.read()
+    main(data)
+    # main(sys.argv[1])
