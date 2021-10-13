@@ -204,7 +204,6 @@ def definition(p):
     
     return Setter(p[0].getstr(), None)
 
-
 # ######### PRINT #########
 @pg.production('println : PRINT OPEN_PARENS parseEXPR CLOSE_PARENS SEMICOLON')
 def println(p):
@@ -277,7 +276,7 @@ def main(entrada):
     # print(int(result))
 
 if __name__ == "__main__":
-    f = open(sys.argv[1])
-    data = f.read()
-    main(data)
-    # main(sys.argv[1])
+    # f = open(sys.argv[1])
+    # data = f.read()
+    # main(data)
+    main(sys.argv[1])
