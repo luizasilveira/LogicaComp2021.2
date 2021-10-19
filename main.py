@@ -87,7 +87,7 @@ class SymbolTable:
 
     def setter(self, value, number):
         self.variables[value] = number
-s
+        
 st = SymbolTable()
 class Setter(Node):
     def __init__(self,left,right):
@@ -115,9 +115,10 @@ class Program():
 
     def eval(self):
         for e in self.value:
-            if(e.eval() is not None):
-                print(e.eval())
-           
+            if not isinstance(e, type(None)):
+                if(e.eval() is not None):
+                    print(e.eval())
+            
 pg = ParserGenerator(
     # A list of all token names, accepted by the parser.
     ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
@@ -137,17 +138,26 @@ pg = ParserGenerator(
 @pg.production('program : program statement')
 def program(p):
     if len(p) == 1:
+        # print(p[0])
         return(Program([p[0]]))
 
     p[0].value += [p[1]]
     return p[0]
 
-##################### STATEMENT ####################
-@pg.production('statement : SEMICOLON')
-@pg.production('statement : assignment SEMICOLON')
+
+# @pg.production('statement : SEMICOLON')
 @pg.production('statement : println')
 def statement(p):
     return p[0]
+##################### STATEMENT ####################
+@pg.production('statement : assignment SEMICOLON')
+@pg.production('statement : SEMICOLON')
+# @pg.production('statement : println')
+def statement(p):
+    if len(p) > 1:
+        return p[0]
+    else:
+        return None
 
 @pg.production('println : PRINT OPEN_PARENS expression CLOSE_PARENS SEMICOLON')
 @pg.production('println : PRINT OPEN_PARENS variable CLOSE_PARENS SEMICOLON')
@@ -219,7 +229,8 @@ def main(entrada):
     # print(int(result))
 
 if __name__ == "__main__":
-    # f = open(sys.argv[1])
-    # data = f.read()
-    # main(data)
-    main(sys.argv[1])
+    f = open(sys.argv[1])
+    data = f.read()
+    main(data)
+    
+    # main(sys.argv[1])
