@@ -24,7 +24,6 @@ lg.add('EQUAL', r'\=')
 lg.add('SEMICOLON', r'\;')
 lg.add('LISTA', r'\[[0-9]+\,.*\]|\[\]|\[[0-9]\]')
 
-
 lg.ignore('\s+')
 lg.ignore("/\*.*?\*/")
 lexer = lg.build()
