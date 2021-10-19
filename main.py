@@ -18,9 +18,19 @@ lg.add('DIV', r'/')
 lg.add('POT', r'\^')
 lg.add('OPEN_PARENS', r'\(')
 lg.add('CLOSE_PARENS', r'\)')
+lg.add('PRINT', r'println')
+lg.add("IDENTIFIER", r'[a-zA-Z_]([a-zA-Z_0-9]*|_[a-zA-Z_0-9]*)')
+lg.add('EQUAL', r'\=')
+lg.add('SEMICOLON', r'\;')
+lg.add('LISTA', r'\[[0-9]+\,.*\]|\[\]|\[[0-9]\]')
+
 lg.ignore('\s+')
 lg.ignore("/\*.*?\*/")
 lexer = lg.build()
+
+# for token in lexer.lex('x1 = 3;'):
+#   print(token)
+
 class Node(BaseBox):
     def __init__(self,value):
         self.value = value
@@ -28,6 +38,7 @@ class Node(BaseBox):
 
     def eval(self):
         return self.value
+
 class BinOp(Node):
     def __init__(self, op, left, right):
         self.value = op
@@ -44,10 +55,11 @@ class BinOp(Node):
             return (self.children[0].eval() * self.children[1].eval())
 
         if self.value == "DIV":
-            return (self.children[0].eval() / self.children[1].eval())
+            return int((self.children[0].eval() / self.children[1].eval()))
 
         if self.value == "POT":
             return (self.children[0].eval() ** self.children[1].eval())
+
 class UnOp(Node):
     def __init__(self, op, children):
         self.value = op
@@ -66,24 +78,50 @@ class IntVal(Node):
     def eval(self):
         return int(self.value)
 
-# class NoOp(Node):
-#     def __init__(self, value):
-#         self.value = value
+class SymbolTable:
+    def __init__(self):
+        self.variables = {}
 
-#     def eval(self):
-#         return self.value.eval()
+    def getter(self, value):
+        return self.variables[value]
 
-class Number(BaseBox):
+    def setter(self, value, number):
+        self.variables[value] = number
+s
+st = SymbolTable()
+class Setter(Node):
+    def __init__(self,left,right):
+        self.children = [left, right]
+    def eval(self):
+        return st.setter(self.children[0], self.children[1].eval())
+
+class Getter(Node):
     def __init__(self, value):
         self.value = value
 
     def eval(self):
-        return self.value
+        return st.getter(self.value)
 
+class Print(Node):
+    def __init__(self, value):
+        self.value = value
+
+    def eval(self):
+        return self.value.eval()
+
+class Program():
+    def __init__(self, value):
+        self.value = value
+
+    def eval(self):
+        for e in self.value:
+            if(e.eval() is not None):
+                print(e.eval())
+           
 pg = ParserGenerator(
     # A list of all token names, accepted by the parser.
     ['NUMBER', 'OPEN_PARENS', 'CLOSE_PARENS',
-     'PLUS', 'MINUS',"MUL","DIV", "POT"
+     'PLUS', 'MINUS',"MUL","DIV", "POT","IDENTIFIER","EQUAL","SEMICOLON","PRINT"
     ],
     # A list of precedence rules with ascending precedence, to
     # disambiguate ambiguous production rules.
@@ -94,54 +132,94 @@ pg = ParserGenerator(
     ]
 )
 
-@pg.production('expression : PLUS expression')
-@pg.production('expression : MINUS expression')
-def expression_unary(p):
-    left = p[0]
-    if left.gettokentype() == 'PLUS':
-        return UnOp("PLUS", p[1])
-    elif left.gettokentype() == 'MINUS':
-        return UnOp("MINUS", p[1])
+#################### PROGRAM ####################
+@pg.production('program : statement')
+@pg.production('program : program statement')
+def program(p):
+    if len(p) == 1:
+        return(Program([p[0]]))
 
-@pg.production('expression : NUMBER')
-def expression_number(p):
-    # p is a list of the pieces matched by the right hand side of the
-    # rule
-    return IntVal(p[0].getstr())
-    #return Number(float(p[0].getstr()))
+    p[0].value += [p[1]]
+    return p[0]
 
-@pg.production('expression : OPEN_PARENS expression CLOSE_PARENS')
-def expression_parens(p):
-    return p[1]
+##################### STATEMENT ####################
+@pg.production('statement : SEMICOLON')
+@pg.production('statement : assignment SEMICOLON')
+@pg.production('statement : println')
+def statement(p):
+    return p[0]
+
+@pg.production('println : PRINT OPEN_PARENS expression CLOSE_PARENS SEMICOLON')
+@pg.production('println : PRINT OPEN_PARENS variable CLOSE_PARENS SEMICOLON')
+# @self.pg.production('println : PRINT OPEN_PAREN variable expression CLOSE_PAREN SEMI_COLON')
+def println(p):
+    return Print(p[2])
+
+# #################### ASSIGNMENT and DEFINITION ####################
+@pg.production('assignment : IDENTIFIER EQUAL expression ')
+def assignment(p):
+    return Setter(p[0].getstr(), p[2])
+
+@pg.production('variable : IDENTIFIER')
+def variable(p):
+    return Getter(p[0].getstr())
+
+# variable and number
+@pg.production('expression : variable MINUS expression')
+@pg.production('expression : variable PLUS expression')
+@pg.production('expression : variable MUL expression')
+@pg.production('expression : variable DIV expression')
+@pg.production('expression : variable POT expression')
+
+@pg.production('expression : variable PLUS variable')
+@pg.production('expression : variable MINUS variable')
+@pg.production('expression : variable MUL variable')
+@pg.production('expression : variable DIV variable')
+@pg.production('expression : variable POT variable')
+
 
 @pg.production('expression : expression PLUS expression')
 @pg.production('expression : expression MINUS expression')
 @pg.production('expression : expression MUL expression')
 @pg.production('expression : expression DIV expression')
 @pg.production('expression : expression POT expression')
-# @pg.production('expression : expression POT expression')
-def expression_binop(p):
+
+def expression(p):
+    if len(p) > 2:
+        right = p[2]
+
     left = p[0]
-    right = p[2]
-    if p[1].gettokentype() == 'PLUS':
-        return BinOp("PLUS",left, right)
-    elif p[1].gettokentype() == 'MINUS':
-        return BinOp('MINUS',left, right)
-    elif p[1].gettokentype() == 'MUL':
-        return BinOp('MUL',left, right)
-    elif p[1].gettokentype() == 'DIV':
-        return BinOp('DIV',left, right)
-    elif p[1].gettokentype() == 'POT':
-        return BinOp('POT',left, right)
-    else:
-        raise AssertionError('Oops, this should not be possible!')
+    return BinOp(p[1].gettokentype(),left,right)
+
+@pg.production('expression : PLUS expression')
+@pg.production('expression : MINUS expression')
+def factor_unary_unary(p):
+    left = p[0]
+    right = p[1]
+    return UnOp(left.gettokentype(),right)
+
+@pg.production('expression : NUMBER')
+def factor_unary(p):
+    return IntVal(p[0].getstr())  
+
+######### EXPRESSION #########
+@pg.production('expression : OPEN_PARENS expression CLOSE_PARENS')
+def expression_parens(p):
+    return p[1]
+
+######### ERROR #########
+@pg.error
+def error_handle(token):
+    raise ValueError(token)
 
 parser = pg.build()
 
 def main(entrada):
-    result = parser.parse(lexer.lex(entrada)).eval()
-    print(int(result))
+    parser.parse(lexer.lex(entrada)).eval()
+    # print(int(result))
 
 if __name__ == "__main__":
+    # f = open(sys.argv[1])
+    # data = f.read()
+    # main(data)
     main(sys.argv[1])
-    #main(input())
