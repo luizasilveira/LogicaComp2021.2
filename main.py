@@ -87,7 +87,7 @@ class SymbolTable:
 
     def setter(self, value, number):
         self.variables[value] = number
-s
+
 st = SymbolTable()
 class Setter(Node):
     def __init__(self,left,right):
