@@ -383,6 +383,7 @@ def while_(p):
 
 @pg.production('cond : IF OPEN_PAREN OREXPR CLOSE_PAREN begin')
 @pg.production('cond : IF OPEN_PAREN OREXPR CLOSE_PAREN begin ELSE begin')
+#@pg.production('cond : IF OPEN_PAREN paren_expr CLOSE_PAREN begin ELSE begin')
 def cond(p):
     if p[0].gettokentype() == "IF":
         if len(p) == 5:
@@ -391,6 +392,7 @@ def cond(p):
             return If([condition, todo, None])
         else:
             return If([p[2], p[4], p[6]])
+
 
 
 @pg.production('OREXPR : ANDEXPR')
@@ -429,7 +431,10 @@ def parseEQEXPR(p):
         if operator.gettokentype() == 'EQUAL_EQUAL':
             return Equal_Equal(left, right)
 
+
+
 @pg.production('EXPR : expression')
+#@pg.production('EXPR : paren_expr')
 @pg.production('EXPR : expression LESS EXPR')
 @pg.production('EXPR : expression GREATER EXPR')
 def EXPR(p):
@@ -443,6 +448,8 @@ def EXPR(p):
             return Less(left, right)
         elif operator.gettokentype() == 'GREATER':
             return Greater(left, right)
+
+
 
 @pg.production('expression : term')
 @pg.production('expression : term SUM expression')
@@ -458,6 +465,7 @@ def expression(p):
             return Sum(left, right)
         elif operator.gettokentype() == 'SUB':
             return Sub(left, right)
+
 
 @pg.production('term : factor')
 @pg.production('term : factor DIV term')
