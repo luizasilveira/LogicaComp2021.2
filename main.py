@@ -473,7 +473,6 @@ def term(p):
             return Div(left, right)
         elif operator.gettokentype() == 'MUL':
             return Mul(left, right)
-
 @pg.production('factor : SUM factor')
 @pg.production('factor : SUB factor')
 @pg.production('factor : NOT factor') 
@@ -493,7 +492,6 @@ def factor(p):
     elif left.gettokentype() == "IDENTIFIER":
         if len(p) == 1:
             return Getter(p[0].getstr())
-
 ######### ERROR #########
 @pg.error
 def error_handle(token):
