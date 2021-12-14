@@ -434,7 +434,6 @@ def EXPR(p):
 def expression_parens(p):
     return p[1]
 
-
 @pg.production('expression : expression SUM expression')
 @pg.production('expression : expression SUB expression')
 @pg.production('expression : expression MUL expression')
@@ -504,7 +503,6 @@ def factor(p):
     elif left.gettokentype() == "IDENTIFIER":
         if len(p) == 1:
             return Getter(p[0].getstr())
-
 ######### ERROR #########
 @pg.error
 def error_handle(token):
