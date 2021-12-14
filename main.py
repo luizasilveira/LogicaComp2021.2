@@ -467,8 +467,6 @@ def expression(p):
         elif operator.gettokentype() == 'SUB':
             return Sub(left, right)
 
-        
-
 @pg.production('term : factor')
 @pg.production('term : factor DIV term')
 @pg.production('term : factor MUL term')
