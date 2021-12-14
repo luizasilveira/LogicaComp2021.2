@@ -512,6 +512,7 @@ parser = pg.build()
 def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
+
 if __name__ == "__main__":
     # f = open(sys.argv[1])
     # data = f.read()
