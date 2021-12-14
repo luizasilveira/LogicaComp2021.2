@@ -8,7 +8,6 @@ from rply import LexerGenerator
 from rply import ParserGenerator
 
 lg = LexerGenerator()
-
 # comentarios
 lg.ignore(r"//.*?//")
 # Print
