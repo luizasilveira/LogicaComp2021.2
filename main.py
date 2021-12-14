@@ -519,5 +519,5 @@ def main(entrada):
 if __name__ == "__main__":
     f = open(sys.argv[1])
     data = f.read()
-    main(data)
-    #main(sys.argv[1])
+    #main(data)
+    main(sys.argv[1])
