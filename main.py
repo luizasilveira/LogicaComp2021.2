@@ -293,8 +293,7 @@ class IntermediateCode(Visitor):
   def visit_add(self, a):
     a.left.accept(self)
     a.right.accept(self)
-    print("opr 0 2\n")
-          
+    print("opr 0 2\n")   
 
   def visit_sub(self, a):
     a.left.accept(self)
