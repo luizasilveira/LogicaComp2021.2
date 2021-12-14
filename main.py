@@ -191,8 +191,8 @@ class SymbolTable(Visitor):
         ST[d.id]=d.tp
 
 arvore.accept(SymbolTable())
-# for k, v in ST.items():
-#   print(k, v)
+for k, v in ST.items():
+  print(k, v)
 
 class Decorator(Visitor):
 
@@ -315,6 +315,7 @@ arvore.accept(SymbolTable())
 arvore.accept(Decorator())
 arvore.accept(TypeVerifier())
 arvore.accept(IntermediateCode())   
+
 # class SymbolTable:
 
 #     st_function = {}
