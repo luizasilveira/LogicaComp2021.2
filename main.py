@@ -448,7 +448,6 @@ def factor(p):
     if left.gettokentype() == 'NOT':
         return UnOp("NOT", p[1])
 
-
 @pg.production('expression : NUMBER')
 @pg.production('expression : IDENTIFIER')
 def factor_unary(p):
