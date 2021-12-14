@@ -213,6 +213,12 @@ class Rest(BinaryOp):
         return int(self.left.eval(st) % self.right.eval(st))
 
 
+class Not(BinaryOp):
+  def __init__(self, value):
+        self.value = value
+  def eval(self):
+        return not self.value
+
 class UnOp(BinaryOp):
     def __init__(self, value, children):
         self.value = value
@@ -321,17 +327,15 @@ def command(p):
         pass
 
 @pg.production('assignment : IDENTIFIER OPEN_PAREN CLOSE_PAREN')
-@pg.production('assignment : IDENTIFIER EQUAL OREXPR')
+@pg.production('assignment : IDENTIFIER EQUAL expression')
 @pg.production('assignment : IDENTIFIER EQUAL readln')
 def assignment(p):
-    # print("assin")
-    # print("----------")
     if len(p) == 3:
         if p[1].gettokentype() == "EQUAL":
             return Setter(p[0].getstr(), p[2])
 
 
-@pg.production('println : PRINT OPEN_PAREN OREXPR CLOSE_PAREN SEMI_COLON')
+@pg.production('println : PRINT OPEN_PAREN expression CLOSE_PAREN SEMI_COLON')
 def println(p):
     return Print(p[2])
 
@@ -341,25 +345,14 @@ def println(p):
     return x
    
 
-
-@pg.production('while_ : WHILE OPEN_PAREN OREXPR CLOSE_PAREN begin')
+@pg.production('while_ : WHILE OPEN_PAREN expression CLOSE_PAREN begin')
 def while_(p):
     condition = p[2]
     todo = p[4]
     return While([condition, todo])
 
-# class If():
-#     def __init__(self, children):
-#         self.children = children
-
-#     def eval(self, st):
-#         if self.children[0].eval(st):
-#             self.children[1].eval(st)
-#         else:
-#             if self.children[2] != None:
-#                 self.children[2].eval(st)
-@pg.production('cond : IF OPEN_PAREN OREXPR CLOSE_PAREN begin')
-@pg.production('cond : IF OPEN_PAREN OREXPR CLOSE_PAREN begin ELSE begin')
+@pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN begin')
+@pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN begin ELSE begin')
 
 def cond(p):
     if p[0].gettokentype() == "IF":  
@@ -371,9 +364,7 @@ def cond(p):
         else:
             return If([p[2], p[4], p[6]])
 
-
-@pg.production('OREXPR : ANDEXPR')
-@pg.production('OREXPR : ANDEXPR OR OREXPR')
+@pg.production('expression : expression OR expression')
 def OREXPR(p):
     if len(p) == 1:
         return p[0]
@@ -384,8 +375,7 @@ def OREXPR(p):
         if operator.gettokentype() == 'OR':
             return Or(left, right)
 
-@pg.production('ANDEXPR : EQ')
-@pg.production('ANDEXPR : EQ AND ANDEXPR')
+@pg.production('expression : expression AND expression')
 def ANDEXPR(p):
     if len(p) == 1:
         return p[0]
@@ -396,8 +386,8 @@ def ANDEXPR(p):
         if operator.gettokentype() == 'AND':
             return Equal_Equal(left, right)
 
-@pg.production('EQ : EXPR')
-@pg.production('EQ : EXPR EQUAL_EQUAL EQ')
+
+@pg.production('expression : expression EQUAL_EQUAL expression')
 def parseEQEXPR(p):
     if len(p) == 1:
         return p[0]
@@ -408,9 +398,8 @@ def parseEQEXPR(p):
         if operator.gettokentype() == 'EQUAL_EQUAL':
             return Equal_Equal(left, right)
 
-@pg.production('EXPR : expression')
-@pg.production('EXPR : expression LESS EXPR')
-@pg.production('EXPR : expression GREATER EXPR')
+@pg.production('expression : expression LESS expression')
+@pg.production('expression : expression GREATER expression')
 
 def EXPR(p):
     if len(p) == 1:
@@ -423,87 +412,57 @@ def EXPR(p):
             return Less(left, right)
         elif operator.gettokentype() == 'GREATER':
             return Greater(left, right)
-######### EXPRESSION #########
-@pg.production('EXPR : OPEN_PAREN EXPR CLOSE_PAREN')
-@pg.production('EQ : OPEN_PAREN EQ CLOSE_PAREN')
-@pg.production('ANDEXPR : OPEN_PAREN ANDEXPR CLOSE_PAREN')
-@pg.production('OREXPR : OPEN_PAREN OREXPR CLOSE_PAREN')
-@pg.production('expression : OPEN_PAREN expression CLOSE_PAREN')
-
-#@pg.production('expression : OPEN_PAREN expression CLOSE_PAREN')
-def expression_parens(p):
-    return p[1]
 
 @pg.production('expression : expression SUM expression')
 @pg.production('expression : expression SUB expression')
 @pg.production('expression : expression MUL expression')
 @pg.production('expression : expression DIV expression')
+
 def expression(p):
+
     right = p[2]
     left = p[0]
     operator = p[1]
-    if operator.gettokentype() == 'SUM':
-        return Sum(left, right)
     if operator.gettokentype() == 'DIV':
         return Div(left, right)
-    if operator.gettokentype() == 'MUL':
-        return Mul(left, right)
-    elif operator.gettokentype() == 'SUB':
+
+    if operator.gettokentype() == 'SUM':
+        return Sum(left, right)
+
+    if operator.gettokentype() == 'SUB':
         return Sub(left, right)
 
-@pg.production('expression : term')
-@pg.production('expression : term SUM expression')
-@pg.production('expression : term SUB expression')
-def expression(p):
-    if len(p) == 1:
-        return p[0]
-    else:
-        right = p[2]
-        left = p[0]
-        operator = p[1]
-        if operator.gettokentype() == 'SUM':
-            return Sum(left, right)
-        elif operator.gettokentype() == 'SUB':
-            return Sub(left, right)
+    elif operator.gettokentype() == 'MUL':
+        return Mul(left, right)
 
-@pg.production('term : factor')
-@pg.production('term : factor DIV term')
-@pg.production('term : factor MUL term')
-@pg.production('term : term DIV term')
-@pg.production('term : term MUL term')
-def term(p):
-    if len(p) == 1:
-        return p[0]
-    else:
-        right = p[2]
-        left = p[0]
-        operator = p[1]
-        if operator.gettokentype() == 'DIV':
-            return Div(left, right)
-        elif operator.gettokentype() == 'MUL':
-            return Mul(left, right)
-
-
-@pg.production('factor : SUM factor')
-@pg.production('factor : SUB factor')
-@pg.production('factor : NOT factor') 
-@pg.production('factor : NUMBER')
-@pg.production('factor : IDENTIFIER')
+@pg.production('expression : SUM expression')
+@pg.production('expression : SUB expression')
+@pg.production('expression : NOT expression') 
 
 def factor(p):
     left = p[0]
     if left.gettokentype() == 'SUM':
-        # print("sum_unop")
         return UnOp("SUM", p[1])
-    elif left.gettokentype() == 'SUB':
+    if left.gettokentype() == 'SUB':
         return UnOp("SUB", p[1])
-    elif left.gettokentype() == 'NOT':
-        return UnOp("SUB", p[1])
-    elif left.gettokentype() == "NUMBER":
+    if left.gettokentype() == 'NOT':
+        return UnOp("NOT", p[1])
+
+
+@pg.production('expression : NUMBER')
+@pg.production('expression : IDENTIFIER')
+def factor_unary(p):
+    left = p[0]
+    if left.gettokentype() == "NUMBER":
         return Number(p[0].value)
     elif left.gettokentype() == "IDENTIFIER":
         if len(p) == 1:
             return Getter(p[0].getstr())
+
+######### EXPRESSION #########
+@pg.production('expression : OPEN_PAREN expression CLOSE_PAREN')
+def expression_parens(p):
+    return p[1]
 ######### ERROR #########
 @pg.error
 def error_handle(token):
@@ -513,9 +472,8 @@ parser = pg.build()
 def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
-
 if __name__ == "__main__":
     # f = open(sys.argv[1])
     # data = f.read()
-    #main(data)
+    # main(data)
     main(sys.argv[1])
