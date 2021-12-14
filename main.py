@@ -233,20 +233,6 @@ class Identifier():
 
     def eval(self, st):
         return st.getter(self.value)
-
-# 5
-# None todo
-# ---------------
-# 0 eval
-# ---------------
-# 0
-
-# 5
-# 0
-# None todo
-# ---------------
-# 0 eval
-# ---------------
 class If():
     def __init__(self, children):
         self.children = children
