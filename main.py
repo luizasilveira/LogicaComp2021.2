@@ -54,6 +54,7 @@ lg.add('DOUBLE', r'doble')
 # Statement
 lg.add("WHILE", r'while')
 lg.add("FOR", r'for')
+lg.add("READLN", r'readln')
 
 lg.add("IDENTIFIER", r'[a-zA-Z_]([a-zA-Z_0-9]*|_[a-zA-Z_0-9]*)')
 lg.add('NUMBER', r'\d+')
@@ -73,6 +74,8 @@ class SymbolTable:
 
     def setter_valor(self, value, number):
         self.a[value] = number
+        print("value", value)
+        print(number,"number")
 
     def setter(self, value):
         if value in self.a:
@@ -92,7 +95,7 @@ st = SymbolTable()
 class Number():
     def __init__(self, value):
         self.value = value
-
+        
     def eval(self, st):
         return int(self.value)
 
@@ -109,17 +112,21 @@ class Block():
 
     def eval(self, st):
         for node in self.children:
-            if "return" in st.st_function:
-                break
-            node.eval(st)
+            if((node) == None):
+                pass
+            else:
+                node.eval(st)
 
 
 class Setter(BinaryOp):
     def __init__(self, left, right):
         self.left = left
         self.right = right
+        print(right,"right")
+        print(left,"left")
 
     def eval(self, st):
+        print("eval------!")
         st.setter_valor(self.left, self.right.eval(st))
 
 
@@ -253,7 +260,14 @@ class Print():
     def eval(self, st):
         print(self.value.eval(st))
 
+class Read():
+    def __init__(self, value):
+        self.value = value
+        print(self.value,"read_value")
 
+    def eval(self, st):
+        print(self.value.eval(st),"read---")
+        return self.value.eval(st)
 
 pg = ParserGenerator(
     # A list of all token names accepted by the parser.
@@ -261,8 +275,16 @@ pg = ParserGenerator(
         'SEMI_COLON', 'OPEN_BRACES', 'CLOSE_BRACES',
         'EQUAL', 'IDENTIFIER', 'LESS', 'GREATER',
         'SUM', 'SUB', 'NOT', 'MUL', 'DIV', 'EQUAL_EQUAL',
-        'AND', 'OR', 'IF', 'ELSE', 'WHILE']
+        'AND', 'OR', 'IF', 'ELSE', 'WHILE',"FOR","READLN"],
+
+        precedence=[
+                ('left', ['PLUS', 'MINUS']),
+                ('left', ['MUL', 'DIV']),
+                ('left', ['NOT']),
+                ('left', ['AND', 'OR', 'EQUAL_EQUAL', 'GREATER', 'LESS']),
+            ]
 )
+
 
 
 @pg.production('begin : OPEN_BRACES block CLOSE_BRACES ')
@@ -272,23 +294,38 @@ def begin(p):
 @pg.production('block : command')
 @pg.production('block : block command')
 def block(p):
+   
     if len(p) == 1:
-        return Block([p[0]])
+        if(type([p[0]]) == int):
+            return Number(p[0])
+        else:
+            return Block([p[0]])
 
     p[0].children += [p[1]]
     return p[0]
 
-@pg.production('command : SEMI_COLON')
-@pg.production('command : assignment SEMI_COLON')
 @pg.production('command : println')
+@pg.production('command : readln')
 @pg.production('command : cond')
 @pg.production('command : while_')
 def command(p):
+    print(p[0].eval(), "p[0]---")
     return p[0]
+
+@pg.production('command : SEMI_COLON')
+@pg.production('command : assignment SEMI_COLON')
+def command(p):
+    if len(p) > 1:
+        return p[0]
+    else:
+        pass
 
 @pg.production('assignment : IDENTIFIER OPEN_PAREN CLOSE_PAREN')
 @pg.production('assignment : IDENTIFIER EQUAL OREXPR')
+@pg.production('assignment : IDENTIFIER EQUAL readln')
 def assignment(p):
+    print("assin")
+    print("----------")
     if len(p) == 3:
         if p[1].gettokentype() == "EQUAL":
             return Setter(p[0].getstr(), p[2])
@@ -297,6 +334,14 @@ def assignment(p):
 @pg.production('println : PRINT OPEN_PAREN OREXPR CLOSE_PAREN SEMI_COLON')
 def println(p):
     return Print(p[2])
+
+@pg.production('readln : READLN OPEN_PAREN CLOSE_PAREN SEMI_COLON')
+def println(p):
+    print("readln")
+    x = int(input())
+    return Read(x)
+   
+
 
 @pg.production('while_ : WHILE OPEN_PAREN OREXPR CLOSE_PAREN begin')
 def while_(p):
@@ -461,7 +506,7 @@ def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
 if __name__ == "__main__":
-    # f = open(sys.argv[1])
-    # data = f.read()
-    # main(data)
+    f = open(sys.argv[1])
+    data = f.read()
+    #main(data)
     main(sys.argv[1])
