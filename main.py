@@ -483,6 +483,7 @@ def term(p):
         elif operator.gettokentype() == 'MUL':
             return Mul(left, right)
 
+
 @pg.production('factor : SUM factor')
 @pg.production('factor : SUB factor')
 @pg.production('factor : NOT factor') 
