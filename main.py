@@ -355,6 +355,7 @@ def parseEQEXPR(p):
 @pg.production('EXPR : expression')
 @pg.production('EXPR : expression LESS EXPR')
 @pg.production('EXPR : expression GREATER EXPR')
+
 def EXPR(p):
     if len(p) == 1:
         return p[0]
@@ -366,6 +367,13 @@ def EXPR(p):
             return Less(left, right)
         elif operator.gettokentype() == 'GREATER':
             return Greater(left, right)
+######### EXPRESSION #########
+@pg.production('EXPR : OPEN_PAREN EXPR CLOSE_PAREN')
+@pg.production('EQ : OPEN_PAREN EQ CLOSE_PAREN')
+@pg.production('ANDEXPR : OPEN_PAREN ANDEXPR CLOSE_PAREN')
+@pg.production('OREXPR : OPEN_PAREN OREXPR CLOSE_PAREN')
+def expression_parens(p):
+    return p[1]
 
 @pg.production('expression : term')
 @pg.production('expression : term SUM expression')
@@ -429,7 +437,7 @@ def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
 if __name__ == "__main__":
-    #f = open(sys.argv[1])
+    # f = open(sys.argv[1])
     # data = f.read()
     # main(data)
     main(sys.argv[1])
