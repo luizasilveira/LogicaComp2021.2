@@ -5,9 +5,7 @@
 import sys
 import re
 from rply import LexerGenerator
-from rply.token import BaseBox
 from rply import ParserGenerator
-from symbolTable import SymbolTable
 
 lg = LexerGenerator()
 
