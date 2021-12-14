@@ -191,8 +191,8 @@ class SymbolTable(Visitor):
         ST[d.id]=d.tp
 
 arvore.accept(SymbolTable())
-for k, v in ST.items():
-  print(k, v)
+# for k, v in ST.items():
+#   print(k, v)
 
 class Decorator(Visitor):
 
@@ -279,6 +279,7 @@ class IntermediateCode(Visitor):
     
   def visit_atrib(self, i):
     i.expr.accept(self)
+    print("sto 0 z","\n")
         
 
   def visit_id(self, i):
@@ -310,12 +311,11 @@ class IntermediateCode(Visitor):
     a.right.accept(self)
     print("opr 0 5\n")
 
-arvore=parser.parse(lexer.lex('int x;int y;int z;z=2*x-60/y'))
+arvore=parser.parse(lexer.lex('int x;int y;int z;z=2*x+60/y'))
 arvore.accept(SymbolTable())
 arvore.accept(Decorator())
 arvore.accept(TypeVerifier())
 arvore.accept(IntermediateCode())   
-
 # class SymbolTable:
 
 #     st_function = {}
