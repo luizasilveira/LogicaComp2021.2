@@ -7,6 +7,7 @@ import re
 from rply import LexerGenerator
 from rply.token import BaseBox
 from rply import ParserGenerator
+from symbolTable import SymbolTable
 
 lg = LexerGenerator()
 
@@ -26,8 +27,8 @@ lg.add('COMMA', r'\,')
 lg.add('FUNCTION', r'def')
 lg.add('RETURN', r'return')
 # type
-lg.add('TYPE', 'int')
-lg.add('TYPE', 'bool')
+# lg.add('TYPE', 'int')
+# lg.add('TYPE', 'bool')
 # Operators
 # lg.add('PLUS_ONE', r'\++')`
 lg.add('EQUAL_EQUAL', r'\=\=')
@@ -59,7 +60,7 @@ lg.add("FOR", r'for')
 
 # Identifier
 # IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ;
-lg.add("IDENTIFIER", r'[a-zA-Z]*([a-zA-Z]|/d+|_)')
+lg.add("IDENTIFIER", r'[a-zA-Z_]([a-zA-Z_0-9]*|_[a-zA-Z_0-9]*)')
 # Number
 lg.add('NUMBER', r'\d+')
 
@@ -77,23 +78,14 @@ class SymbolTable:
         return self.a[value]
 
     def setter_valor(self, value, number):
-        self.a[value][0] = number
+        self.a[value] = number
 
-    def setter(self, value, v_type):
+    def setter(self, value):
         if value in self.a:
             raise ValueError
-        self.a[value] = [None, v_type]
-
-    def setter_func(self, nome, func_name, func_type, params_name):
-        if nome in self.st_function:
-            raise ValueError("Already in the dictionary")
-
-        self.st_function[nome] = [func_name, func_type, params_name]
+        self.a[value] = [None]
 
     # pegar a função
-    def getter_func(self, nome):
-
-        return self.st_function[nome]
 
     def set_return(self, return_f, valor):
         self.st_function[return_f] = valor
@@ -108,7 +100,7 @@ class Number():
         self.value = value
 
     def eval(self, st):
-        return [int(self.value), "int"]
+        return int(self.value)
 
 
 class BinaryOp():
@@ -129,27 +121,12 @@ class Block():
 
 
 class Setter(BinaryOp):
-    def __init__(self, left, right, v_type):
+    def __init__(self, left, right):
         self.left = left
         self.right = right
-        self.v_type = v_type
 
     def eval(self, st):
-
-        if self.v_type in ["int", "bool"]:
-            return st.setter(self.left, self.v_type)
-
-        elif self.v_type == "vuelve":
-            return st.set_return(self.left, self.right.eval(st))
-        else:
-
-            s = st.getter(self.left)
-            if s[1] == "bool":
-                return st.setter_valor(
-                    self.left, int(bool(self.right.eval(st)[0]))
-                )
-            else:
-                st.setter_valor(self.left, self.right.eval(st)[0])
+        st.setter_valor(self.left, self.right.eval(st))
 
 
 class Getter(BinaryOp):
@@ -206,6 +183,9 @@ class And(BinaryOp):
 
 class Sum(BinaryOp):
     def eval(self, st):
+        # print(self.left.eval(st) , "left")
+        # print(self.right.eval(st) , "right")
+        # print(self.left.eval(st) + self.right.eval(st), "soma")
         return self.left.eval(st) + self.right.eval(st)
 
 
@@ -277,51 +257,8 @@ class Print():
         self.value = value
 
     def eval(self, st):
-        print(self.value.eval(st)[0])
+        print(self.value.eval(st))
 
-class FuncCall():
-    def __init__(self, func_name, name_params):
-        self.func_name = func_name
-        self.name_params = name_params
-
-    def eval(self, st):
-        funcSt = SymbolTable()
-        args = st.getter_func(self.func_name)
-
-        if len(self.name_params) != 0:
-            for i in range(len(args[1])):
-                a, b = self.name_params[i].eval(st)
-                funcSt.setter(args[1][i][1], b)
-                funcSt.setter_valor(args[1][i][1], a)
-
-                if b == "string":
-                    raise ValueError("Cannot operate string")
-
-        args[2].eval(funcSt)
-
-        if "vuelve" in funcSt.st_function:
-            return_return = funcSt.getter_func("vuelve")
-            if args[0].lower() == return_return[1]:
-                del funcSt.st_function["vuelve"]
-                return return_return
-            else:
-                raise ValueError
-
-class FuncDec():
-    def __init__(self, children, func_name, func_type):
-        self.children = children
-        self.func_name = func_name
-        self.func_type = func_type
-
-    def eval(self, st):
-        return st.setter_func(
-            self.func_name,
-            self.func_type,
-            self.children[0],
-            self.children[1],
-        )
-
-    params_name = []
 
 
 pg = ParserGenerator(
@@ -330,7 +267,7 @@ pg = ParserGenerator(
         'SEMI_COLON', 'OPEN_BRACES', 'CLOSE_BRACES',
         'EQUAL', 'IDENTIFIER', 'LESS', 'GREATER',
         'SUM', 'SUB', 'NOT', 'MUL', 'DIV', 'EQUAL_EQUAL',
-        'AND', 'OR', 'IF', 'ELSE', 'WHILE', 'TYPE']
+        'AND', 'OR', 'IF', 'ELSE', 'WHILE']
 )
 
 
@@ -352,7 +289,6 @@ def block(p):
 @pg.production('command : println')
 @pg.production('command : cond')
 @pg.production('command : while_')
-@pg.production('command : definition SEMI_COLON')
 def command(p):
     return p[0]
 
@@ -361,14 +297,7 @@ def command(p):
 def assignment(p):
     if len(p) == 3:
         if p[1].gettokentype() == "EQUAL":
-            return Setter(p[0].getstr(), p[2], None)
-        else:
-            node = FuncCall(p[0].getstr(), [])
-            return node
-
-@pg.production('definition : TYPE IDENTIFIER')
-def definition(p):
-    return Setter(p[1].getstr(), None, p[0].getstr())
+            return Setter(p[0].getstr(), p[2])
 
 
 @pg.production('println : PRINT OPEN_PAREN OREXPR CLOSE_PAREN SEMI_COLON')
@@ -473,6 +402,7 @@ def term(p):
             return Div(left, right)
         elif operator.gettokentype() == 'MUL':
             return Mul(left, right)
+
 @pg.production('factor : SUM factor')
 @pg.production('factor : SUB factor')
 @pg.production('factor : NOT factor') 
@@ -482,6 +412,7 @@ def term(p):
 def factor(p):
     left = p[0]
     if left.gettokentype() == 'SUM':
+        print("sum_unop")
         return UnOp("SUM", p[1])
     elif left.gettokentype() == 'SUB':
         return UnOp("SUB", p[1])
@@ -492,12 +423,14 @@ def factor(p):
     elif left.gettokentype() == "IDENTIFIER":
         if len(p) == 1:
             return Getter(p[0].getstr())
+
 ######### ERROR #########
 @pg.error
 def error_handle(token):
     raise ValueError(token)
 
 parser = pg.build()
+
 def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
