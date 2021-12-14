@@ -515,7 +515,7 @@ def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
 if __name__ == "__main__":
-    f = open(sys.argv[1])
-    data = f.read()
+    # f = open(sys.argv[1])
+    # data = f.read()
     #main(data)
     main(sys.argv[1])
