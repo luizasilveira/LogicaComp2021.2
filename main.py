@@ -55,10 +55,7 @@ lg.add('DOUBLE', r'doble')
 lg.add("WHILE", r'while')
 lg.add("FOR", r'for')
 
-# Identifier
-# IDENTIFIER = LETTER, { LETTER | DIGIT | "_" } ;
 lg.add("IDENTIFIER", r'[a-zA-Z_]([a-zA-Z_0-9]*|_[a-zA-Z_0-9]*)')
-# Number
 lg.add('NUMBER', r'\d+')
 
 lg.ignore('\s+')
