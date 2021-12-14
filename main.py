@@ -39,7 +39,7 @@ lg.add('AND', r'\&\&')
 lg.add('OR', r'\|\|')
 lg.add('EQUAL', r'\=')
 lg.add('SUM', r'\+')
-lg.add('NOT', r'not')
+lg.add('NOT', r'\!')
 lg.add('SUB', r'\-')
 
 lg.add('MUL', r'\*')
@@ -372,8 +372,29 @@ def EXPR(p):
 @pg.production('EQ : OPEN_PAREN EQ CLOSE_PAREN')
 @pg.production('ANDEXPR : OPEN_PAREN ANDEXPR CLOSE_PAREN')
 @pg.production('OREXPR : OPEN_PAREN OREXPR CLOSE_PAREN')
+@pg.production('expression : OPEN_PAREN expression CLOSE_PAREN')
+
+#@pg.production('expression : OPEN_PAREN expression CLOSE_PAREN')
 def expression_parens(p):
     return p[1]
+
+
+@pg.production('expression : expression SUM expression')
+@pg.production('expression : expression SUB expression')
+@pg.production('expression : expression MUL expression')
+@pg.production('expression : expression DIV expression')
+def expression(p):
+    right = p[2]
+    left = p[0]
+    operator = p[1]
+    if operator.gettokentype() == 'SUM':
+        return Sum(left, right)
+    if operator.gettokentype() == 'DIV':
+        return Div(left, right)
+    if operator.gettokentype() == 'MUL':
+        return Mul(left, right)
+    elif operator.gettokentype() == 'SUB':
+        return Sub(left, right)
 
 @pg.production('expression : term')
 @pg.production('expression : term SUM expression')
@@ -390,9 +411,13 @@ def expression(p):
         elif operator.gettokentype() == 'SUB':
             return Sub(left, right)
 
+        
+
 @pg.production('term : factor')
 @pg.production('term : factor DIV term')
 @pg.production('term : factor MUL term')
+@pg.production('term : term DIV term')
+@pg.production('term : term MUL term')
 def term(p):
     if len(p) == 1:
         return p[0]
