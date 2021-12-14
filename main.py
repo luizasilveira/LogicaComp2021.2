@@ -455,7 +455,6 @@ def factor(p):
 @pg.error
 def error_handle(token):
     raise ValueError(token)
-
 parser = pg.build()
 
 def main(entrada):
