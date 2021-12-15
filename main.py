@@ -127,6 +127,7 @@ class Setter(BinaryOp):
         # print(left,"left")
 
     def eval(self, st):
+        # print("right",self.right.eval(st))
         if(type(self.right) == int):
             st.setter_valor(self.left, self.right)
         else:
@@ -258,6 +259,16 @@ class While():
     def eval(self, st):
         while self.children[0].eval(st):
             self.children[1].eval(st)
+
+class For():
+    def __init__(self, children):
+        self.children = children
+
+    def eval(self, st):
+        pass 
+        # while self.children[0].eval(st):
+        #     continue
+            
 class Print():
     def __init__(self, value):
         self.value = value
@@ -282,8 +293,10 @@ pg = ParserGenerator(
             ]
 )
 
+@pg.production('begin : OPEN_BRACES CLOSE_BRACES ')
+def begin(p): 
+    return
 
-#@pg.production('begin : block ')
 @pg.production('begin : OPEN_BRACES block CLOSE_BRACES ')
 def begin(p):
     if len(p) == 1:
@@ -294,7 +307,8 @@ def begin(p):
 @pg.production('block : command')
 @pg.production('block : block command')
 def block(p):
-   
+    # print("block")
+    # print("---------")
     if len(p) == 1:
         if(type([p[0]]) == int):
             return Number(p[0])
@@ -308,12 +322,17 @@ def block(p):
 @pg.production('command : readln')
 @pg.production('command : cond')
 @pg.production('command : while_')
+@pg.production('command : for_')
 def command(p):
+    # print("comand 1")
+    # print("---------")
     return p[0]
 
 @pg.production('command : SEMI_COLON')
 @pg.production('command : assignment SEMI_COLON')
 def command(p):
+    # print("comand")
+    # print("---------")
     if len(p) > 1:
         return p[0]
     else:
@@ -323,8 +342,12 @@ def command(p):
 @pg.production('assignment : IDENTIFIER EQUAL expression')
 @pg.production('assignment : IDENTIFIER EQUAL readln')
 def assignment(p):
+    # print("assig")
+    # print("---------")
     if len(p) == 3:
         if p[1].gettokentype() == "EQUAL":
+            # print("p[0]----",p[0].getstr())
+            # print("p[2]----",p[2])
             return Setter(p[0].getstr(), p[2])
 
 
@@ -343,6 +366,26 @@ def while_(p):
     todo = p[4]
     return While([condition, todo])
 
+# def assignment(p):
+#     print("assig")
+#     print("---------")
+#     if len(p) == 3:
+#         if p[1].gettokentype() == "EQUAL":
+#             return Setter(p[0].getstr(), p[2])
+                #       0       1          2       3        4        5          6
+@pg.production('for_ : FOR OPEN_PAREN assignment SEMI_COLON expression SEMI_COLON assignment CLOSE_PAREN begin')
+def for_(p):
+
+    # print("assignment", p[2].eval(st) )
+    # print("------")
+    # print("expression", p[4].eval(st) )
+    # print("------")
+    # x = Getter("i")
+    # print(x.eval(st), "xxxxxxxxx")
+    condicao = p[4]
+    # variavel = p[2]
+    # todo = p[4]
+    return For(condicao)
 
 @pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN println println')
 def cond(p):
