@@ -242,14 +242,9 @@ class Identifier():
 class If():
     def __init__(self, children):
         self.children = children
-        # print(self.children,"children")
-        #print(self.children[1].eval(st), "111")
+
 
     def eval(self, st):
-        # print(self.children[1].eval(st), "todo")
-        # print("---------------")
-        # #print(self.children[0].eval(st), "eval")
-        # print("---------------")
         if self.children[0].eval(st):
             self.children[1].eval(st)
         else:
@@ -263,8 +258,6 @@ class While():
     def eval(self, st):
         while self.children[0].eval(st):
             self.children[1].eval(st)
-
-
 class Print():
     def __init__(self, value):
         self.value = value
@@ -282,15 +275,15 @@ pg = ParserGenerator(
         'AND', 'OR', 'IF', 'ELSE', 'WHILE',"FOR","READLN"],
 
         precedence=[
-                ('left', ['PLUS', 'MINUS']),
+                ('left', ['SUM', 'SUB']),
                 ('left', ['MUL', 'DIV']),
                 ('left', ['NOT']),
-                ('left', ['AND', 'OR', 'EQUAL_EQUAL', 'GREATER', 'LESS']),
+                
             ]
 )
 
 
-@pg.production('begin : block ')
+#@pg.production('begin : block ')
 @pg.production('begin : OPEN_BRACES block CLOSE_BRACES ')
 def begin(p):
     if len(p) == 1:
@@ -344,22 +337,25 @@ def println(p):
     x = int(input())
     return x
    
-
 @pg.production('while_ : WHILE OPEN_PAREN expression CLOSE_PAREN begin')
 def while_(p):
     condition = p[2]
     todo = p[4]
     return While([condition, todo])
 
+
+@pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN println println')
+def cond(p):
+    if p[0].gettokentype() == "IF":  
+            return If([p[2], p[4], p[5]])
+
 @pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN begin')
 @pg.production('cond : IF OPEN_PAREN expression CLOSE_PAREN begin ELSE begin')
-
 def cond(p):
     if p[0].gettokentype() == "IF":  
         if len(p) == 5:
             condition = p[2]
             todo = p[4]
-            # print(todo, "todo")
             return If([condition, todo, None])
         else:
             return If([p[2], p[4], p[6]])
@@ -472,7 +468,7 @@ def main(entrada):
     parser.parse(lexer.lex(entrada)).eval(st)
 
 if __name__ == "__main__":
-    # f = open(sys.argv[1])
-    # data = f.read()
-    # main(data)
-    main(sys.argv[1])
+    f = open(sys.argv[1])
+    data = f.read()
+    main(data)
+    # main(sys.argv[1])
